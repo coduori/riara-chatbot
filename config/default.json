@@ -1,0 +1,22 @@
+{
+    "http": {
+        "host": "0.0.0.0",
+        "port": 3006
+    },
+
+    "database": {
+        "mongo": "mongodb+srv://incourage:vUqf2PI3956T10R4@Incourage-DBs-7c290cde.mongo.ondigitalocean.com/staging_agent?authSource=admin"
+    },
+    
+    "internalServices": {
+        "quotation": {
+            "baseUrl": "http://localhost:3001",
+            "paths": {
+                "getAgent": "/v1/services/motor/users",
+                "getQuotation": "/v1/services/motor/quotation/paymentCode",
+                "getUser": "/v1/auth/user"
+            }
+        }
+    }
+
+}
