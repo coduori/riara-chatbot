@@ -1,6 +1,6 @@
 {
   "name": "ru-chatbot",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A helpdesk Whatsapp bot that answers Riara University Students helpdesk questions",
   "main": "src/app.mjs",
   "type": "module",
