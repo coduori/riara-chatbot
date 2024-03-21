@@ -1,19 +1,15 @@
 import _ from 'lodash';
 import path from 'path';
+import config from 'config';
 import morgan from 'morgan';
 import signale from 'signale';
 import process from 'process';
 import { fileURLToPath } from 'url';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 
 export const ERROR_START = 15;
 
 export const dateFormat = 'YYYY-MM-DD';
-
-export const policyStatusTypes = ['active', 'expired'];
-
-export const renewalInsuranceTypes = ['torc', 'torp', 'psvmttpo'];
-
-export const clientDetailsDocumentOptions = ['logbook', 'krapin'];
 
 export const log = (() => {
     const opts = {
@@ -41,6 +37,8 @@ export const isEmpty = (value) => {
     return _.isEmpty(val);
 };
 
+export const mongoObjectIdPattern = /^[0-9a-fA-F]{24}$/;
+
 export const randomNumber = (min, max) => Math.floor(Math.random() * (max - (min + 1))) + min;
 
 export const delay = (time) => new Promise((resolve) => { setTimeout(() => resolve(), time); });
@@ -56,14 +54,6 @@ export function stripExt(name) {
     return name.slice(0, -extension.length);
 }
 
-export const getExt = (name) => {
-    const items = name.split('/');
-    const filename = items[items.length - 1];
-    const parts = filename.split('.');
-    const ext = parts[parts.length - 1];
-    return ext;
-};
-
 export function isEntryPoint(url) {
     const modulePath = fileURLToPath(url);
 
@@ -75,3 +65,23 @@ export function isEntryPoint(url) {
 
     return stripExt(modulePath) === scriptPath;
 }
+
+export const rateLimiter = () => {
+    const options = {
+        points: config.get('rateLimit.requests'),
+        duration: config.get('rateLimit.durationInSeconds'),
+    };
+    const limiter = new RateLimiterMemory(options);
+    return (req, res, next) => {
+        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        limiter.consume(ip)
+            .then(() => { next(); })
+            .catch(() => {
+                log.warn(`Rate Limited: ${ip} for request ${req.method} ${req.originalUrl} with headers \n${JSON.stringify(req.headers, null, 2)}`);
+                res.status(429).send({
+                    status: 429,
+                    message: 'Too many requests; Boss, slow down!',
+                });
+            });
+    };
+};

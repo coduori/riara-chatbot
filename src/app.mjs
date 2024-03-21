@@ -2,8 +2,8 @@ import http from 'http';
 import config from 'config';
 import express from 'express';
 
-import mongo from './utils/db/index.mjs';
 import setupHttpServer from './http/index.mjs';
+import mongo from './utils/db/index.mjs';
 
 import {
     log,
@@ -17,7 +17,6 @@ const app = express();
 app.start = async () => {
     log.info('Starting...');
 
-    log.info('Initializing mongo connection...');
     await mongo.connect();
 
     const port = config.get('http.port');
@@ -64,7 +63,6 @@ app.stop = () => new Promise((resolve, reject) => {
                 reject(err);
                 return;
             }
-            await mongo.disconnect();
             log.info('Bye Bye!');
             resolve(true);
         } catch (ex) {

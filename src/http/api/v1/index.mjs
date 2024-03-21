@@ -1,16 +1,14 @@
 import { Router } from 'express';
 
-import grossWrittenPremiums from './grossWrittenPremiums/index.mjs';
-
-import authenticator from './utils/authenticator.mjs';
-import { inputLogger, responseSender } from './utils/responses.mjs';
+import webhook from './webhook.mjs';
+import admin from './admin.mjs';
+import { responseSender } from './utils/responses.mjs';
 
 const router = new Router();
 
-router.use(authenticator);
 router.use(responseSender);
-router.use(inputLogger);
 
-router.use('/grossWrittenPremiums', grossWrittenPremiums);
+router.use('/webhook', webhook);
+router.use('/admin', admin);
 
 export default router;

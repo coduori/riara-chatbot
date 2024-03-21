@@ -2,7 +2,7 @@ import bodyParser from 'body-parser';
 import compression from 'compression';
 
 import api from './api/index.mjs';
-import { log as logger, makeScopedLogger } from '../utils/index.mjs';
+import { log as logger, makeScopedLogger, rateLimiter } from '../utils/index.mjs';
 
 const log = makeScopedLogger('http');
 
@@ -13,6 +13,7 @@ export default async function setup({ app, port }) {
         app.use(logger.requestLogger);
     }
 
+    app.use(rateLimiter());
     app.use(compression());
 
     app.use(bodyParser.json({ limit: '16mb' }));
@@ -21,7 +22,7 @@ export default async function setup({ app, port }) {
     }));
 
     // Routes
-    app.use(api);
+    app.use('/api', api);
 
     // 404
     app.use((req, res) => {

@@ -1,8 +1,11 @@
 import config from 'config';
 import mongoose from 'mongoose';
 
-import grossWrittenPremiums from './grossWrittenPremiums.mjs';
 import { makeScopedLogger } from '../index.mjs';
+import courses from './courses.mjs';
+import students from './students.mjs';
+import units from './units.mjs';
+import unitStatus from './unitStatus.mjs';
 
 const log = makeScopedLogger('mongo');
 
@@ -11,24 +14,23 @@ async function connect() {
     mongoose.set('strictQuery', false);
     const db = await mongoose.connect(config.get('database.mongo'));
 
-    await grossWrittenPremiums.setDB(db);
+    await courses.setDB(db);
+    await students.setDB(db);
+    await units.setDB(db);
+    await unitStatus.setDB(db);
 }
 
 async function disconnect() {
     log.info('Disconnecting...');
     return mongoose.disconnect();
 }
-async function truncate(force = false) {
-    log.warn('Dangerous, removing everything from the db, HOPE YOU KNOW WHAT YOU\'RE DOING');
-    if (force) {
-        await grossWrittenPremiums.truncate();
-    }
-}
 
 export default {
     connect,
     disconnect,
-    truncate,
 
-    grossWrittenPremiums,
+    courses,
+    students,
+    units,
+    unitStatus,
 };

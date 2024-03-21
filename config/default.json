@@ -1,22 +1,23 @@
 {
     "http": {
         "host": "0.0.0.0",
-        "port": 3006
+        "port": 3000
+    },
+    "rateLimit": {
+        "requests": 10,
+        "durationInSeconds": 1
+    },
+    "database": {
+        "mongo": "mongodb+srv://iconcept24:u2sOytUu4axG144r@cluster0.qlfwlck.mongodb.net/chatbot"
     },
 
-    "database": {
-        "mongo": "mongodb+srv://incourage:vUqf2PI3956T10R4@Incourage-DBs-7c290cde.mongo.ondigitalocean.com/staging_agent?authSource=admin"
+    "bot": {
+        "sessionTTL": 1800
     },
     
-    "internalServices": {
-        "quotation": {
-            "baseUrl": "http://localhost:3001",
-            "paths": {
-                "getAgent": "/v1/services/motor/users",
-                "getQuotation": "/v1/services/motor/quotation/paymentCode",
-                "getUser": "/v1/auth/user"
-            }
-        }
+    "twillio": {
+        "accountSid": "AC1581472c7adcb957d7c9072cbba62bfb",
+        "authToken": "4c893e51d7fdc8e5f122162d8b5b6b8d",
+        "senderPhoneNumber": "+14155238886"
     }
-
 }
