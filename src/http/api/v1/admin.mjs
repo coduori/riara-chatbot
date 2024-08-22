@@ -2,7 +2,7 @@ import { Router } from 'express';
 import Joi from 'joi';
 
 import { sendSuccess, sendBadRequest, sendServerError } from './utils/responses.mjs';
-import { makeScopedLogger, mongoObjectIdPattern } from '../../../utils/index.mjs';
+import { makeScopedLogger, mongoObjectIdPattern, schedulePattern } from '../../../utils/index.mjs';
 import mongo from '../../../utils/db/index.mjs';
 
 const router = new Router();
@@ -116,6 +116,38 @@ router.post('/unit-status', async (req, res) => {
     }
 
     return sendSuccess(res, unitStatus);
+});
+
+router.post('/timetable', async (req, res) => {
+    const inputSchema = Joi.object({
+        unit: Joi.string().regex(mongoObjectIdPattern).required(),
+        schedule: Joi.array().items({
+            day: Joi.string().valid('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday').required(),
+            time: Joi.string().regex(schedulePattern).required(),
+            venue: Joi.string().required(),
+        }).required(),
+    });
+
+    const { error } = inputSchema.validate(req.body, { abortEarly: false });
+
+    if (error) {
+        const errorMessage = error.details.map((detail) => detail.message).join('. ');
+        log.error(errorMessage);
+        return sendBadRequest(res, errorMessage);
+    }
+    let timetable;
+    try {
+        const schedule = req.body;
+        timetable = await mongo.timetables.create(schedule);
+    } catch (err) {
+        log.error(err);
+        return sendServerError(res);
+    }
+    if (timetable.error) {
+        return sendBadRequest(res, timetable);
+    }
+
+    return sendSuccess(res, timetable);
 });
 
 export default router;

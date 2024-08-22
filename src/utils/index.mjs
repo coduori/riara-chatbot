@@ -39,6 +39,8 @@ export const isEmpty = (value) => {
 
 export const mongoObjectIdPattern = /^[0-9a-fA-F]{24}$/;
 
+export const schedulePattern = /^\d{4}\s*-\s*\d{4}\s*hrs$/;
+
 export const randomNumber = (min, max) => Math.floor(Math.random() * (max - (min + 1))) + min;
 
 export const delay = (time) => new Promise((resolve) => { setTimeout(() => resolve(), time); });

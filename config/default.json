@@ -16,8 +16,8 @@
     },
     
     "twillio": {
-        "accountSid": "AC1581472c7adcb957d7c9072cbba62bfb",
-        "authToken": "4c893e51d7fdc8e5f122162d8b5b6b8d",
+        "accountSid": "ACf912454652605d801fb0dfd7430b7654",
+        "authToken": "c3a790b6db4a01753d409de3399ff455",
         "senderPhoneNumber": "+14155238886"
     }
 }

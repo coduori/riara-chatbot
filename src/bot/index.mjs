@@ -37,32 +37,25 @@ export const makeBot = async (id) => {
         context: {
             item: undefined,
             admissionNumber: undefined,
+            final: undefined,
         },
         states: {
             inactive: {
-                entry: ['welcome'],
-                on: {
-                    PROCESS: {
-                        target: 'item',
-                    },
-                },
-            },
-            item: {
                 entry: ['listHelpItems'],
                 on: {
                     PROCESS: [
                         {
-                            target: 'requirements',
+                            target: 'admissionNumber',
                             actions: [setContextItem('item')],
                             cond: (ctx, { payload }) => payload.text === '1',
                         },
                         {
-                            target: 'units',
+                            target: 'admissionNumber',
                             actions: [setContextItem('item')],
                             cond: (ctx, { payload }) => payload.text === '2',
                         },
                         {
-                            target: 'timetable',
+                            target: 'admissionNumber',
                             actions: [setContextItem('item')],
                             cond: (ctx, { payload }) => payload.text === '3',
                         },
@@ -88,7 +81,7 @@ export const makeBot = async (id) => {
                         },
                     ],
                     RESET: {
-                        target: 'inactive',
+                        target: 'final',
                         actions: ['reset'],
                     },
                     BACK: {
@@ -106,6 +99,16 @@ export const makeBot = async (id) => {
                             cond: (ctx) => ctx.item === '1',
                         },
                         {
+                            target: 'units',
+                            actions: [setContextItem('admissionNumber')],
+                            cond: (ctx) => ctx.item === '2',
+                        },
+                        {
+                            target: 'timetable',
+                            actions: [setContextItem('admissionNumber')],
+                            cond: (ctx) => ctx.item === '3',
+                        },
+                        {
                             target: 'final',
                             actions: [setContextItem('admissionNumber')],
                         },
@@ -115,7 +118,7 @@ export const makeBot = async (id) => {
                         actions: ['reset'],
                     },
                     BACK: {
-                        target: 'item',
+                        target: 'inactive',
                     },
                 },
             },
@@ -126,43 +129,43 @@ export const makeBot = async (id) => {
                         target: 'final',
                     },
                     RESET: {
-                        target: 'inactive',
+                        target: 'final',
                         actions: ['reset'],
                     },
                     BACK: {
-                        target: 'item',
+                        target: 'inactive',
                     },
                 },
             },
             units: {
-                entry: ['askForAdmissionNumber'],
+                entry: ['sendUnits'],
                 on: {
                     PROCESS: {
                         target: 'final',
-                        actions: [setContextItem('admissionNumber')],
+                        actions: ['reset'],
                     },
                     RESET: {
-                        target: 'inactive',
+                        target: 'final',
                         actions: ['reset'],
                     },
                     BACK: {
-                        target: 'item',
+                        target: 'inactive',
                     },
                 },
             },
             timetable: {
-                entry: ['askForAdmissionNumber'],
+                entry: ['sendTimetable'],
                 on: {
                     PROCESS: {
                         target: 'final',
-                        actions: [setContextItem('admissionNumber')],
+                        actions: ['reset'],
                     },
                     RESET: {
-                        target: 'inactive',
+                        target: 'final',
                         actions: ['reset'],
                     },
                     BACK: {
-                        target: 'item',
+                        target: 'inactive',
                     },
                 },
             },
@@ -173,11 +176,11 @@ export const makeBot = async (id) => {
                         target: 'final',
                     },
                     RESET: {
-                        target: 'inactive',
+                        target: 'final',
                         actions: ['reset'],
                     },
                     BACK: {
-                        target: 'item',
+                        target: 'inactive',
                     },
                 },
             },
@@ -188,11 +191,11 @@ export const makeBot = async (id) => {
                         target: 'final',
                     },
                     RESET: {
-                        target: 'inactive',
+                        target: 'final',
                         actions: ['reset'],
                     },
                     BACK: {
-                        target: 'item',
+                        target: 'inactive',
                     },
                 },
             },
@@ -203,11 +206,11 @@ export const makeBot = async (id) => {
                         target: 'final',
                     },
                     RESET: {
-                        target: 'inactive',
+                        target: 'final',
                         actions: ['reset'],
                     },
                     BACK: {
-                        target: 'item',
+                        target: 'inactive',
                     },
                 },
             },
@@ -218,11 +221,11 @@ export const makeBot = async (id) => {
                         target: 'final',
                     },
                     RESET: {
-                        target: 'inactive',
+                        target: 'final',
                         actions: ['reset'],
                     },
                     BACK: {
-                        target: 'item',
+                        target: 'inactive',
                     },
                 },
             },
@@ -233,28 +236,66 @@ export const makeBot = async (id) => {
         },
     }, {
         actions: {
-            welcome: () => sendMessage(id, 'Hi my name is RU Chatbot, here to assist.'),
-            listHelpItems: () => sendMessage(id, initialListMessage),
+            listHelpItems: () => {
+                log.info('We are here!!!!');
+                sendMessage(id, `Hi my name is RU Chatbot, here to assist.\n${initialListMessage}`);
+            },
             askForAdmissionNumber: () => sendMessage(id, 'What\'s your admission number?').catch((err) => log.error('askForAdmissionNumber', err)),
             getPortalLink: () => sendMessage(id, 'Link to school portal is: \n http://student.riarauniversity.ac.ke/StudentPortal/Logins.aspx')
                 .catch((err) => log.error('getPortalLink', err)),
             sendRequirements: async (cxt) => {
                 const { admissionNumber } = cxt;
+
                 const student = await mongo.students.findBy('admissionNumber', admissionNumber);
                 if (!student) {
                     sendMessage(id, 'The Student could not be found in our records. Please check with admin');
                     return;
                 }
-                const course = await mongo.courses.findBy('course', student.course);
+                const course = await mongo.courses.findBy('_id', student.course);
+                let formattedMessage;
                 if (!course) {
-                    const message = `Course associalted with student: ${student.admissionNumber} does not exist!`;
-                    log.error(message);
-                    sendMessage(message);
+                    formattedMessage = `${student.name} is not enrolled in any course!`;
+                    log.error(formattedMessage);
+                    sendMessage(id, formattedMessage);
+                } else {
+                    const requirementResponse = [];
+                    course.requiredUnits.forEach((reqUnit) => requirementResponse.push(`${reqUnit.unitId.name}: ${reqUnit.compulsory ? 'Required' : 'Optional'}`));
+                    formattedMessage = `Hi ${student.name},\nYour course is: ${course.name}\nThe following units are required to graduate:\n\n${requirementResponse.join('\n')}`;
+                    sendMessage(id, formattedMessage);
                 }
-                const requirementResponse = [];
-                const formattedResponse = course.requiredUnits.map((reqUnit) => requirementResponse.push(`${reqUnit.unitId.name}: ${reqUnit.compulsory ? 'Required' : 'Optional'}`));
-                const formattedMessage = `Hi ${student.name},\nYour course is: ${course.name}\nThe following units are required to graduate:\n${formattedResponse.join('\n')}`;
-                sendMessage(id, formattedMessage);
+            },
+            sendUnits: async (ctx) => {
+                const { admissionNumber } = ctx;
+                const units = await mongo.unitStatus.findAll();
+                const filteredDoneUnits = units
+                    .filter((unit) => unit.student.admissionNumber === admissionNumber && unit.status === 'done');
+                const filteredDoingUnits = units
+                    .filter((unit) => unit.student.admissionNumber === admissionNumber && unit.status === 'doing');
+                const { student } = units[0];
+                const formattedDoneUnits = filteredDoneUnits.map((unit) => `${unit.unit.code}: ${unit.unit.name}`);
+                const formattedDoingUnits = filteredDoingUnits.map((unit) => `${unit.unit.code}: ${unit.unit.name}`);
+                const formattedMessage = `Dear ${student.name}, This is your academic progress:\n\nDone Units:\n${formattedDoneUnits.join('\n')}\n Doing Units:\n${formattedDoingUnits.join('\n')}`;
+                sendMessage(id, formattedMessage).catch((err) => log.error('sendUnits', err));
+            },
+            sendTimetable: async (ctx) => {
+                log.info('Searching timetable data....');
+                const { admissionNumber } = ctx;
+                const unitsInProgress = await mongo.unitStatus.findAllBy('status', 'doing');
+                console.log(`unit in progress::: ${JSON.stringify(unitsInProgress[0])}`)
+                const doingUnits = unitsInProgress
+                    .filter((unit) => unit.student.admissionNumber === admissionNumber)
+                    .map((unit) => unit.unit.id);
+                console.log(doingUnits)
+                const fullTimetable = await mongo.timetables.findAll();
+                const studentTimetable = fullTimetable
+                    .filter((timetable) => {
+                        log.info(JSON.stringify(timetable.unit.id))
+                        doingUnits.includes(timetable.unit.id)
+                    });
+                console.log(studentTimetable);
+                if (studentTimetable.length < 1) {
+                    sendMessage(id, 'Your units are not scheduled this semester');
+                }
             },
             getCanvaLink: () => sendMessage(id, 'Link to Canva is : \nhttps://online.riarauniversity.ac.ke/?login_success=1').catch((err) => log.error('getCanvaLink', err)),
             getLibraryLink: () => sendMessage(id, 'Link to Library resource is: \nhttps://library.riarauniversity.ac.ke/e-resources/').catch((err) => log.error('getLibraryLink', err)),
@@ -293,6 +334,7 @@ export const makeBot = async (id) => {
     });
 
     service.subscribe((st, evt) => {
+        log.info(`And the context is:${JSON.stringify(st.context)}`);
         log.info(st.value, JSON.stringify({
             ...st.context,
         }), `${evt.type}: ${evt.payload?.text ?? 'N/A'}`);

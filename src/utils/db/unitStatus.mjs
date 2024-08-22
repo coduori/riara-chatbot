@@ -16,7 +16,7 @@ const model = {
         UnitStatusSchema = db.Schema({
             student: { type: SchemaTypes.ObjectId, ref: 'Student', required: true },
             unit: { type: SchemaTypes.ObjectId, ref: 'Unit', required: true },
-            status: { type: SchemaTypes.String, required: true },
+            status: { type: SchemaTypes.String, required: true, enum: ['done', 'doing', 'pending'] },
         }, { strict: true, timestamps: true });
 
         UnitStatusSchema.set('toObject', {
@@ -45,6 +45,14 @@ const model = {
         const data = await UnitStatusModel.findOne({ [key]: value }).populate('unit').populate('student');
         if (data) {
             return data.toObject();
+        }
+        return null;
+    },
+
+    findAllBy: async (key, value) => {
+        const data = await UnitStatusModel.find({ [key]: value }).populate('unit').populate('student');
+        if (data) {
+            return data.map((i) => i.toObject());
         }
         return null;
     },

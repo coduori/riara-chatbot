@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import axios from 'axios';
+import config from 'config';
 
 import { sendSuccess } from './utils/responses.mjs';
 import { getBot } from '../../../bot/index.mjs';
@@ -8,6 +10,13 @@ const router = new Router();
 const log = makeScopedLogger('webhook');
 
 router.post('/:action(message)', async (req, res) => {
+    log.info(`Anf the request payload is: ${JSON.stringify(req.body)}`);
+    const { accountSid, authToken } = config.get('twillio');
+    if (req.MediaUrl0) {
+        const image = await axios
+            .get(req.MediaUrl0, { auth: { username: accountSid, password: authToken } });
+        // download document and upload to minio
+    }
     try {
         const data = req.body;
         const { action } = req.params;

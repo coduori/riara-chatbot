@@ -32,7 +32,7 @@ const model = {
     },
 
     findAll: async () => {
-        const data = await CourseModel.find({}).populate('unitId');
+        const data = await CourseModel.find({}).populate('requiredUnits.unitId');
         if (data) {
             return data.map((i) => i.toObject());
         }
@@ -40,7 +40,7 @@ const model = {
     },
 
     findBy: async (key, value) => {
-        const data = await CourseModel.findOne({ [key]: value }).populate('unitId');
+        const data = await CourseModel.findOne({ [key]: value }).populate('requiredUnits.unitId');
         if (data) {
             return data.toObject();
         }

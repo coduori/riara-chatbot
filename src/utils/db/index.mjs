@@ -6,6 +6,7 @@ import courses from './courses.mjs';
 import students from './students.mjs';
 import units from './units.mjs';
 import unitStatus from './unitStatus.mjs';
+import timetables from './timetables.mjs';
 
 const log = makeScopedLogger('mongo');
 
@@ -18,6 +19,7 @@ async function connect() {
     await students.setDB(db);
     await units.setDB(db);
     await unitStatus.setDB(db);
+    await timetables.setDB(db);
 }
 
 async function disconnect() {
@@ -33,4 +35,5 @@ export default {
     students,
     units,
     unitStatus,
+    timetables,
 };
